@@ -1,0 +1,114 @@
+-- Creacion de la base de datos Telovendo
+CREATE database telovendo;
+
+-- Creacion de usuario y contraseña para el manejo de la base de datos
+CREATE USER 'admintelovendo'@'localhost' IDENTIFIED BY 'admin';
+
+-- Otorgar privilegios al usuario admintelovendo
+GRANT CREATE, DROP, ALTER, INSERT, UPDATE, DELETE, SELECT ON telovendo.* TO 'admintelovendo'@'localhost';
+
+-- Actualizar los permisos otorgados
+FLUSH PRIVILEGES;
+
+-- Posicionarse en la base de datos Telovendo
+use telovendo;
+
+-- Creacion de la tabla clientes
+CREATE TABLE clientes (
+clienteID int primary key not null auto_increment,
+NombreCliente varchar(64),
+ApellidoCliente varchar(64),
+DireccionCliente Varchar(64)
+); 
+
+-- Verificar la tabla clientes recien creada
+select * from clientes;
+
+-- Creacion de la tabla proveedores
+CREATE TABLE proveedores (
+ProveedorID int primary key not null auto_increment,
+Representante varchar(64),
+NombreCorporativo varchar(64) UNIQUE,
+Telefono1 bigint,
+Telefono2 bigint,
+Contacto varchar(64),
+Categoria varchar(64) UNIQUE,
+Correo varchar(64)
+); 
+
+-- Verificar la tabla proveedores recien creada
+select * from proveedores;
+
+-- Creacion de la tabla productos
+CREATE TABLE productos (
+ProductoID int primary key not null auto_increment,
+NombreProducto varchar(64),
+Precio decimal(10.2),
+Categoria varchar(64),
+NombreCorporativo varchar(64),
+Color varchar(64),
+Stock bigint,
+foreign key (NombreCorporativo) references proveedores (NombreCorporativo) ON DELETE CASCADE
+); 
+
+-- Verificar la tabla productos recien creada
+SELECT * FROM productos;
+
+-- Insercion de datos en la tabla clientes
+INSERT INTO clientes (NombreCliente,ApellidoCliente,DireccionCliente) values
+('Juan', 'Pérez', 'Calle Falsa 123'),
+('Ana', 'García', 'Avenida Siempre Viva 742'),
+('Luis', 'Martínez', 'Boulevard de los Sueños 456'),
+('María', 'Rodríguez', 'Plaza Mayor 1'),
+('Pedro', 'Hernández', 'Calle del Sol 25');
+
+-- Verificar los datos insertados en la tabla clientes
+select * from clientes;
+
+-- Insercion de datos en la tabla proveedores
+INSERT INTO proveedores (Representante,NombreCorporativo,Telefono1,Telefono2,Contacto,Categoria,Correo) values
+('Carlos Pérez', 'ElectroCorp', 5551234,  5555678, 'Luis Martínez', 'Electrónica', 'contacto@electrocorp.com'),
+('María López', 'TechnoMarket', 5552345,  5556789, 'Jorge Fernández', 'Periféricos', 'contacto@technomarket.com'),
+('Pedro Gómez', 'GadgetWorld', 5553456,  5557890, 'Ricardo Ramírez', 'Línea blanca', 'contacto@gadgetworld.com'),
+('Lucía Díaz', 'MegaElectro', 5554567,  5558901, 'Ana María Castro', 'Telefonía', 'contacto@megaelectro.com'),
+('Fernando Martínez', 'DigitalPlus', 5555678, 5559012, 'Eduardo Soto', 'Computación', 'contacto@digitalplus.com');
+
+-- Verificar los datos insertados en la tabla proveedores
+select * from proveedores;
+
+-- Insercion de datos en la tabla productos
+INSERT INTO productos (NombreProducto, Precio, Categoria, NombreCorporativo, Color, Stock) VALUES
+('Audífonos', 19990, 'Periféricos', 'ElectroCorp', 'Negro', 50),
+('Mouse', 39990, 'Periféricos', 'TechnoMarket', 'Rojo', 100),
+('Refrigerador', 590990, 'Línea blanca', 'GadgetWorld', 'Azul', 200),
+('Smartphone', 120990, 'Telefonía', 'MegaElectro', 'Verde', 150),
+('Laptop', 290990, 'Computación', 'DigitalPlus', 'Marrón', 75),
+('Televisor', 300000, 'Electrónica', 'ElectroCorp', 'Blanco', 120),
+('Teclado', 49990, 'Periféricos', 'TechnoMarket', 'Negro', 60),
+('Lavadora', 179990, 'Línea blanca', 'GadgetWorld', 'Rosa', 180),
+('Tablet', 240990, 'Electrónica', 'MegaElectro', 'Amarillo', 90),
+('Monitor', 134990, 'Periféricos', 'DigitalPlus', 'Negro', 130);
+
+-- Verificar los datos insertados en la tabla productos
+select * from productos;
+
+-- Cuál es la categoría de productos que más se repite.
+SELECT categoria, COUNT(*) AS 'Categoria' FROM productos GROUP BY categoria ORDER BY categoria DESC LIMIT 1;
+
+-- Cuáles son los productos con mayor stock
+SELECT NombreProducto, stock FROM productos ORDER BY stock DESC LIMIT 3;
+
+-- Qué color de producto es más común en nuestra tienda.
+SELECT color, COUNT(*) AS 'Cantidad repetida' FROM productos GROUP BY color ORDER BY 'Cantidad repetida' DESC LIMIT 1;
+
+-- Cual o cuales son los proveedores con menor stock de productos.
+SELECT NombreProducto, stock FROM productos ORDER BY stock DESC LIMIT 3;
+
+--  Cual o cuales son los proveedores con menor stock de productos.
+SELECT NombreCorporativo as 'Proveedor', sum(stock) as 'Stock Total' FROM productos GROUP BY NombreCorporativo HAVING SUM(Stock) = (SELECT MIN(total_stock) FROM (SELECT SUM(Stock) AS total_stock FROM productos GROUP BY NombreCorporativo) AS StockMinimo);
+
+
+-- Cambien la categoría de productos más popular por ‘Electrónica y computación’.
+UPDATE productos set categoria = 'Electrónica y computación' where  categoria = (SELECT categoria from (SELECT Categoria, COUNT(*) AS Repeticiones FROM productos GROUP BY categoria ORDER BY Repeticiones DESC LIMIT 1) as repeticion);
+
+select * from productos;
